@@ -4,6 +4,24 @@ FROM n8nio/n8n:1.113.3
 # Switch to root to install packages
 USER root
 
+# Install Tesseract OCR and all required language packs
+RUN apk add --no-cache \
+    tesseract-ocr \
+    tesseract-ocr-data-eng \
+    tesseract-ocr-data-hin \
+    tesseract-ocr-data-asm \
+    tesseract-ocr-data-ben \
+    tesseract-ocr-data-guj \
+    tesseract-ocr-data-kan \
+    tesseract-ocr-data-kas \
+    tesseract-ocr-data-mal \
+    tesseract-ocr-data-mni \
+    tesseract-ocr-data-mar \
+    tesseract-ocr-data-ori \
+    tesseract-ocr-data-pan \
+    tesseract-ocr-data-tel \
+    tesseract-ocr-data-tam
+
 # Install Python and pip
 RUN apk add --no-cache python3 py3-pip
 
