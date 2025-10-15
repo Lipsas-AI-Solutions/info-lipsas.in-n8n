@@ -4,23 +4,28 @@ FROM n8nio/n8n:1.113.3
 # Switch to root to install packages
 USER root
 
-# Install Tesseract OCR and all required language packs
+# Install wget (needed to download language files)
+RUN apk add --no-cache wget
+
+# Install Tesseract OCR and available language packs from Alpine
 RUN apk add --no-cache \
     tesseract-ocr \
     tesseract-ocr-data-eng \
-    tesseract-ocr-data-hin \
-    tesseract-ocr-data-asm \
-    tesseract-ocr-data-ben \
-    tesseract-ocr-data-guj \
-    tesseract-ocr-data-kan \
-    tesseract-ocr-data-kas \
-    tesseract-ocr-data-mal \
-    tesseract-ocr-data-mni \
-    tesseract-ocr-data-mar \
-    tesseract-ocr-data-ori \
-    tesseract-ocr-data-pan \
-    tesseract-ocr-data-tel \
-    tesseract-ocr-data-tam
+    tesseract-ocr-data-hin
+
+# Download missing language traineddata files manually
+RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/asm.traineddata && \
+    wget -O /usr/share/tessdata/ben.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/ben.traineddata && \
+    wget -O /usr/share/tessdata/guj.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/guj.traineddata && \
+    wget -O /usr/share/tessdata/kan.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/kan.traineddata && \
+    wget -O /usr/share/tessdata/kas.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/kas.traineddata && \
+    wget -O /usr/share/tessdata/mal.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/mal.traineddata && \
+    wget -O /usr/share/tessdata/mni.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/mni.traineddata && \
+    wget -O /usr/share/tessdata/mar.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/mar.traineddata && \
+    wget -O /usr/share/tessdata/ori.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/ori.traineddata && \
+    wget -O /usr/share/tessdata/pan.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/pan.traineddata && \
+    wget -O /usr/share/tessdata/tel.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/tel.traineddata && \
+    wget -O /usr/share/tessdata/tam.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/tam.traineddata
 
 # Install Python and pip
 RUN apk add --no-cache python3 py3-pip
