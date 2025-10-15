@@ -1,2 +1,4 @@
-python-docx
 PyPDF2
+python-docx
+pillow
+pytesseract
