@@ -4,13 +4,21 @@ FROM n8nio/n8n:1.113.3
 # Switch to root to install packages
 USER root
 
-# Install wget and ca-certificates
-RUN apk add --no-cache wget ca-certificates
+# Set database type to PostgreSQL
+ENV DB_TYPE=postgresdb
 
-# Install Tesseract OCR and available language packs
-RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-hin
+# Install system dependencies
+RUN apk add --no-cache \
+    wget \
+    ca-certificates \
+    tesseract-ocr \
+    tesseract-ocr-data-eng \
+    tesseract-ocr-data-hin \
+    python3 \
+    py3-pip \
+    bash
 
-# Download missing language traineddata files from tessdata_fast (smaller, faster models)
+# Download missing Tesseract language traineddata files
 RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/asm.traineddata && \
     wget -O /usr/share/tessdata/ben.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/ben.traineddata && \
     wget -O /usr/share/tessdata/guj.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/guj.traineddata && \
@@ -22,23 +30,22 @@ RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr
     wget -O /usr/share/tessdata/tel.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/tel.traineddata && \
     wget -O /usr/share/tessdata/tam.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/tam.traineddata
 
-# Install Python and pip
-RUN apk add --no-cache python3 py3-pip
-
-# Copy requirements.txt for Python packages
+# Copy requirements.txt and Python scripts
 COPY requirements.txt /tmp/requirements.txt
-COPY extract_text.py /app/extract_text.py
-RUN chmod +x /app/extract_text.py
+COPY text_extractor_api.py /app/text_extractor_api.py
 
 # Install Python packages
 RUN pip3 install --break-system-packages -r /tmp/requirements.txt || \
     pip3 install -r /tmp/requirements.txt
 
-# Example: To add community nodes in future, uncomment and modify:
-# RUN cd /usr/local/lib/node_modules/n8n && npm install n8n-nodes-notion
+# Make API script executable
+RUN chmod +x /app/text_extractor_api.py
 
-# Switch back to n8n user for security
-USER node
+# Create startup script that runs both Flask API and n8n
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'python3 /app/text_extractor_api.py &' >> /app/start.sh && \
+    echo 'n8n start' >> /app/start.sh && \
+    chmod +x /app/start.sh
 
-# Use n8n's default start command
-CMD ["n8n", "start"]
+# Use the startup script as entrypoint
+CMD ["/app/start.sh"]
