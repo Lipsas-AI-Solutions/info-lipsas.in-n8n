@@ -27,6 +27,8 @@ RUN apk add --no-cache python3 py3-pip
 
 # Copy requirements.txt for Python packages
 COPY requirements.txt /tmp/requirements.txt
+COPY extract_text.py /app/extract_text.py
+RUN chmod +x /app/extract_text.py
 
 # Install Python packages
 RUN pip3 install --break-system-packages -r /tmp/requirements.txt || \
