@@ -41,12 +41,3 @@ USER node
 
 # Use n8n's default start command
 CMD ["n8n", "start"]
-
-# Create startup script that runs both Flask API and n8n
-RUN echo '#!/bin/bash' > /app/start.sh && \
-    echo 'python3 /app/text_extractor_api.py &' >> /app/start.sh && \
-    echo 'n8n start' >> /app/start.sh && \
-    chmod +x /app/start.sh
-
-# Use the startup script as entrypoint
-CMD ["/app/start.sh"]
