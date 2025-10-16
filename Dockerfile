@@ -15,8 +15,7 @@ RUN apk add --no-cache \
     tesseract-ocr-data-eng \
     tesseract-ocr-data-hin \
     python3 \
-    py3-pip \
-    bash
+    py3-pip
 
 # Download missing Tesseract language traineddata files
 RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/asm.traineddata && \
@@ -30,16 +29,18 @@ RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr
     wget -O /usr/share/tessdata/tel.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/tel.traineddata && \
     wget -O /usr/share/tessdata/tam.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/tam.traineddata
 
-# Copy requirements.txt and Python scripts
+# Copy requirements.txt
 COPY requirements.txt /tmp/requirements.txt
-COPY text_extractor_api.py /app/text_extractor_api.py
 
 # Install Python packages
 RUN pip3 install --break-system-packages -r /tmp/requirements.txt || \
     pip3 install -r /tmp/requirements.txt
 
-# Make API script executable
-RUN chmod +x /app/text_extractor_api.py
+# Switch back to node user
+USER node
+
+# Use n8n's default start command
+CMD ["n8n", "start"]
 
 # Create startup script that runs both Flask API and n8n
 RUN echo '#!/bin/bash' > /app/start.sh && \
