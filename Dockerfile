@@ -1,13 +1,13 @@
 # Use official n8n image as base
 FROM n8nio/n8n:1.113.3
 
-# Switch to root to install packages
+# Switch to root to install system dependencies and Python packages
 USER root
 
-# Set database type to PostgreSQL
+# Set database type to PostgreSQL (Railway injects the actual connection string)
 ENV DB_TYPE=postgresdb
 
-# Install system dependencies
+# Install system dependencies for OCR/text extraction and Python3
 RUN apk add --no-cache \
     wget \
     ca-certificates \
@@ -17,7 +17,7 @@ RUN apk add --no-cache \
     python3 \
     py3-pip
 
-# Download missing Tesseract language traineddata files
+# Download extra tessdata language models for Indian languages
 RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/asm.traineddata && \
     wget -O /usr/share/tessdata/ben.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/ben.traineddata && \
     wget -O /usr/share/tessdata/guj.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/guj.traineddata && \
@@ -29,15 +29,18 @@ RUN wget -O /usr/share/tessdata/asm.traineddata https://github.com/tesseract-ocr
     wget -O /usr/share/tessdata/tel.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/tel.traineddata && \
     wget -O /usr/share/tessdata/tam.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/tam.traineddata
 
-# Copy requirements.txt
+# Copy requirements.txt for Python dependencies
 COPY requirements.txt /tmp/requirements.txt
 
-# Install Python packages
-RUN pip3 install --break-system-packages -r /tmp/requirements.txt || \
-    pip3 install -r /tmp/requirements.txt
+# Install Python packages for document processing and flask API
+RUN pip3 install --break-system-packages -r /tmp/requirements.txt || pip3 install -r /tmp/requirements.txt
 
-# Switch back to node user
-USER node
+# Copy Flask API script into image
+COPY text_extractor_api.py /app/text_extractor_api.py
+RUN chmod +x /app/text_extractor_api.py
 
-# Use n8n's default start command
-CMD ["n8n", "start"]
+# Create startup script to run both Flask API and n8n together
+RUN echo '#!/bin/sh\npython3 /app/text_extractor_api.py &\nn8n start' > /app/start.sh && chmod +x /app/start.sh
+
+# Use the custom startup script as entrypoint
+CMD ["/app/start.sh"]
