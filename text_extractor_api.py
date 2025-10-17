@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, request, jsonify
+from functools import wraps
 from io import BytesIO
 import base64
 import PyPDF2
@@ -7,7 +8,21 @@ import docx
 
 app = Flask(__name__)
 
+# Secret token for authorization
+API_TOKEN = "info-lipsas.in-n8n"
+
+# Decorator to require Authorization header with correct Bearer token
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get("Authorization", None)
+        if not auth or auth != f"Bearer {API_TOKEN}":
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated
+
 @app.route('/extract', methods=['POST'])
+@require_auth
 def extract_text():
     try:
         data = request.json
