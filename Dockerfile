@@ -40,7 +40,7 @@ COPY text_extractor_api.py /app/text_extractor_api.py
 RUN chmod +x /app/text_extractor_api.py
 
 # Create startup script to run both Flask API and n8n together
-RUN echo '#!/bin/sh\npython3 /app/text_extractor_api.py &\nn8n start' > /app/start.sh && chmod +x /app/start.sh
+RUN echo '#!/bin/sh\necho "Starting Flask API..."\npython3 /app/text_extractor_api.py > /tmp/flask.log 2>&1 &\necho "Starting n8n..."\nn8n start' > /app/start.sh && chmod +x /app/start.sh
 
 # Use the custom startup script as entrypoint
 CMD ["/app/start.sh"]
